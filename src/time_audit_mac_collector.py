@@ -333,6 +333,17 @@ def popup_form(active_app: str, active_window: str) -> Optional[Dict[str, Any]]:
         ttk.Label(frame, text=label).grid(row=i, column=0, sticky="w", pady=8)
         widget.grid(row=i, column=1, sticky="ew", pady=8)
 
+    activity_widget = widgets[0][1]
+
+    def focus_popup() -> None:
+        root.lift()
+        root.focus_force()
+        root.attributes("-topmost", True)
+        activity_widget.focus_force()
+
+    root.after(300, focus_popup)
+    root.after(900, focus_popup)
+
     def add_slider(row: int, label: str, variable: tk.StringVar) -> None:
         slider_frame = ttk.Frame(frame)
         slider_frame.grid(row=row, column=1, sticky="ew", pady=8)
@@ -388,6 +399,10 @@ def popup_form(active_app: str, active_window: str) -> Optional[Dict[str, Any]]:
         result["submitted"] = False
         result["data"] = None
         root.destroy()
+
+    root.bind("<Escape>", lambda event: skip())
+    root.bind("<Command-Return>", lambda event: submit())
+    root.bind("<Control-Return>", lambda event: submit())
 
     button_frame = ttk.Frame(root)
     button_frame.grid(row=6, column=0, padx=18, pady=(0, 18), sticky="e")
