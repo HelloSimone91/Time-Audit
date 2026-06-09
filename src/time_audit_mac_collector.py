@@ -104,15 +104,56 @@ def run_osascript(script: str) -> str:
 
 
 def get_active_app() -> str:
-    return run_osascript(
-        'tell application "System Events" to get name of first application process whose frontmost is true'
-    )
+    try:
+        result = subprocess.run(
+            ["lsappinfo", "front"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        out = result.stdout.strip()
+
+        if out:
+            name_result = subprocess.run(
+                ["lsappinfo", "info", "-only", "name", out],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            name = name_result.stdout.strip()
+
+            if "=" in name:
+                return name.split("=", 1)[1].strip().strip('"')
+    except Exception:
+        pass
+
+    script = """
+    tell application "System Events"
+        set frontApp to first application process whose frontmost is true
+        return name of frontApp
+    end tell
+    """
+    return run_osascript(script)
 
 
 def get_active_window_title() -> str:
-    return run_osascript(
-        'tell application "System Events" to get name of front window of first application process whose frontmost is true'
-    )
+    app = get_active_app()
+    if not app:
+        return "Unknown"
+
+    # Generic System Events method works better than browser-specific tab titles.
+    script = f"""
+    tell application "System Events"
+        try
+            tell process "{app}"
+                return name of front window
+            end tell
+        on error
+            return "Unknown"
+        end try
+    end tell
+    """
+    return run_osascript(script) or "Unknown"
 
 
 def get_browser_url(active_app: str) -> str:
