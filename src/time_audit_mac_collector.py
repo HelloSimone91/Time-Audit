@@ -260,14 +260,40 @@ def popup_form(active_app: str, active_window: str) -> Optional[Dict[str, Any]]:
     widgets = [
         ("Activity", make_searchable_combo(frame, activity_var, ACTIVITIES)),
         ("Mood", make_searchable_combo(frame, mood_var, MOODS)),
-        ("Energy", ttk.Combobox(frame, textvariable=energy_var, values=["1", "2", "3", "4", "5"], state="readonly")),
-        ("Kindness Aligned", ttk.Combobox(frame, textvariable=kindness_var, values=["1", "2", "3", "4", "5"], state="readonly")),
-        ("Safety Aligned", ttk.Combobox(frame, textvariable=safety_var, values=["1", "2", "3", "4", "5"], state="readonly")),
     ]
 
     for i, (label, widget) in enumerate(widgets):
         ttk.Label(frame, text=label).grid(row=i, column=0, sticky="w", pady=8)
         widget.grid(row=i, column=1, sticky="ew", pady=8)
+
+    def add_slider(row: int, label: str, variable: tk.StringVar) -> None:
+        slider_frame = ttk.Frame(frame)
+        slider_frame.grid(row=row, column=1, sticky="ew", pady=8)
+        slider_frame.columnconfigure(0, weight=1)
+
+        value_label = ttk.Label(slider_frame, text=variable.get(), width=3)
+        value_label.grid(row=0, column=1, padx=(10, 0))
+
+        def update_value(value: str) -> None:
+            rounded = str(int(float(value)))
+            variable.set(rounded)
+            value_label.config(text=rounded)
+
+        ttk.Label(frame, text=label).grid(row=row, column=0, sticky="w", pady=8)
+
+        scale = ttk.Scale(
+            slider_frame,
+            from_=1,
+            to=5,
+            orient="horizontal",
+            command=update_value,
+        )
+        scale.set(int(variable.get()))
+        scale.grid(row=0, column=0, sticky="ew")
+
+    add_slider(2, "Energy", energy_var)
+    add_slider(3, "Kindness Aligned", kindness_var)
+    add_slider(4, "Safety Aligned", safety_var)
 
     ttk.Label(root, text="Notes").grid(row=3, column=0, padx=18, pady=(12, 4), sticky="w")
 
