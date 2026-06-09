@@ -254,16 +254,42 @@ def make_searchable_combo(parent, variable, values):
     combo = ttk.Combobox(parent, textvariable=variable, values=values)
     combo._all_values = list(values)
 
-    def on_keyrelease(event):
-        typed = variable.get().strip().lower()
-        if not typed:
-            combo["values"] = combo._all_values
+    def filter_values(event=None):
+        # Do not hijack navigation/control keys.
+        if event and event.keysym in {
+            "Up", "Down", "Left", "Right", "Return", "Escape", "Tab",
+            "Shift_L", "Shift_R", "Control_L", "Control_R", "Command"
+        }:
             return
 
-        filtered = [v for v in combo._all_values if typed in v.lower()]
+        typed = variable.get().strip().lower()
+
+        if typed:
+            filtered = [v for v in combo._all_values if typed in v.lower()]
+        else:
+            filtered = combo._all_values
+
         combo["values"] = filtered if filtered else combo._all_values
 
-    combo.bind("<KeyRelease>", on_keyrelease)
+    def accept_first_match(event=None):
+        typed = variable.get().strip().lower()
+        matches = [v for v in combo._all_values if typed in v.lower()]
+
+        if matches:
+            variable.set(matches[0])
+            combo.icursor("end")
+            return "break"
+
+        return None
+
+    def restore_options(event=None):
+        combo["values"] = combo._all_values
+
+    combo.bind("<KeyRelease>", filter_values)
+    combo.bind("<Return>", accept_first_match)
+    combo.bind("<FocusIn>", restore_options)
+    combo.bind("<Button-1>", restore_options)
+
     return combo
 
 
@@ -385,6 +411,27 @@ def popup_form(active_app: str, active_window: str) -> Optional[Dict[str, Any]]:
     return result["data"] if result["submitted"] else None
 
 
+def parse_multi_select_input(value: str):
+    parts = [
+        part.strip()
+        for part in value.replace(";", ",").replace("+", ",").split(",")
+        if part.strip()
+    ]
+
+    clean_parts = []
+    seen = set()
+
+    for part in parts:
+        # Notion multi-select option names cannot contain commas.
+        safe = part.replace(",", " ").strip()
+
+        if safe and safe.lower() not in seen:
+            clean_parts.append({"name": safe})
+            seen.add(safe.lower())
+
+    return clean_parts
+
+
 def create_notion_page(
     now: dt.datetime,
     screenshot_upload_id: Optional[str],
@@ -430,8 +477,8 @@ def create_notion_page(
         props["Temperature"] = {"number": float(temp)}
 
     if form_data:
-        props["Activity"] = {"multi_select": [{"name": form_data["activity"]}]}
-        props["Mood"] = {"multi_select": [{"name": form_data["mood"]}]}
+        props["Activity"] = {"multi_select": parse_multi_select_input(form_data["activity"])}
+        props["Mood"] = {"multi_select": parse_multi_select_input(form_data["mood"])}
         props["Energy"] = {"number": form_data["energy"]}
         props["Kindness Aligned"] = {"select": {"name": form_data["kindness"]}}
         props["Safety Aligned"] = {"select": {"name": form_data["safety"]}}
