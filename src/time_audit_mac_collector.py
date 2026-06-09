@@ -20,6 +20,7 @@ TIME_AUDIT_LOCATION_LABEL = os.environ.get("TIME_AUDIT_LOCATION_LABEL", "Austin,
 TIME_AUDIT_LAT = os.environ.get("TIME_AUDIT_LAT", "30.2672")
 TIME_AUDIT_LON = os.environ.get("TIME_AUDIT_LON", "-97.7431")
 TIME_AUDIT_SESSION_ID = os.environ.get("TIME_AUDIT_SESSION_ID", "time-audit-v2")
+STATE_FILE = os.path.expanduser("~/.time_audit/last_values.json")
 
 ACTIVITIES = [
     "Work",
@@ -176,12 +177,62 @@ def notify() -> None:
     ])
 
 
+def load_last_values() -> Dict[str, Any]:
+    defaults = {
+        "activity": "Work",
+        "mood": "Neutral",
+        "energy": 3,
+        "kindness": "3",
+        "safety": "3",
+    }
+    try:
+        with open(STATE_FILE, "r") as f:
+            saved = json.load(f)
+        defaults.update(saved)
+    except Exception:
+        pass
+    return defaults
+
+
+def save_last_values(data: Dict[str, Any]) -> None:
+    try:
+        os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
+        with open(STATE_FILE, "w") as f:
+            json.dump({
+                "activity": data.get("activity", "Work"),
+                "mood": data.get("mood", "Neutral"),
+                "energy": data.get("energy", 3),
+                "kindness": data.get("kindness", "3"),
+                "safety": data.get("safety", "3"),
+            }, f, indent=2)
+    except Exception as e:
+        print(f"Could not save last values: {e}", file=sys.stderr)
+
+
+def make_searchable_combo(parent, variable, values):
+    combo = ttk.Combobox(parent, textvariable=variable, values=values)
+    combo._all_values = list(values)
+
+    def on_keyrelease(event):
+        typed = variable.get().strip().lower()
+        if not typed:
+            combo["values"] = combo._all_values
+            return
+
+        filtered = [v for v in combo._all_values if typed in v.lower()]
+        combo["values"] = filtered if filtered else combo._all_values
+
+    combo.bind("<KeyRelease>", on_keyrelease)
+    return combo
+
+
 def popup_form(active_app: str, active_window: str) -> Optional[Dict[str, Any]]:
+    last = load_last_values()
     result: Dict[str, Any] = {"submitted": False, "data": None}
 
     root = tk.Tk()
     root.title("Time Audit")
-    root.geometry("470x560")
+    root.geometry("500x590")
     root.attributes("-topmost", True)
 
     root.columnconfigure(0, weight=1)
@@ -193,62 +244,51 @@ def popup_form(active_app: str, active_window: str) -> Optional[Dict[str, Any]]:
     ttk.Label(
         root,
         text=f"Active App: {active_app or 'Unknown'}\nActive Window: {active_window or 'Unknown'}",
-        wraplength=420,
+        wraplength=440,
     ).grid(row=1, column=0, padx=18, pady=(0, 12), sticky="w")
 
     frame = ttk.Frame(root)
     frame.grid(row=2, column=0, padx=18, pady=4, sticky="ew")
     frame.columnconfigure(1, weight=1)
 
-    activity_var = tk.StringVar(value="Work")
-    other_activity_var = tk.StringVar()
-    mood_var = tk.StringVar(value="Neutral")
-    other_mood_var = tk.StringVar()
-    energy_var = tk.StringVar(value="3")
-    kindness_var = tk.StringVar(value="3")
-    safety_var = tk.StringVar(value="3")
+    activity_var = tk.StringVar(value=last.get("activity", "Work"))
+    mood_var = tk.StringVar(value=last.get("mood", "Neutral"))
+    energy_var = tk.StringVar(value=str(last.get("energy", 3)))
+    kindness_var = tk.StringVar(value=str(last.get("kindness", "3")))
+    safety_var = tk.StringVar(value=str(last.get("safety", "3")))
 
-    fields = [
-        ("Activity", ttk.Combobox(frame, textvariable=activity_var, values=ACTIVITIES, state="readonly")),
-        ("Other Activity", ttk.Entry(frame, textvariable=other_activity_var)),
-        ("Mood", ttk.Combobox(frame, textvariable=mood_var, values=MOODS, state="readonly")),
-        ("Other Mood", ttk.Entry(frame, textvariable=other_mood_var)),
+    widgets = [
+        ("Activity", make_searchable_combo(frame, activity_var, ACTIVITIES)),
+        ("Mood", make_searchable_combo(frame, mood_var, MOODS)),
         ("Energy", ttk.Combobox(frame, textvariable=energy_var, values=["1", "2", "3", "4", "5"], state="readonly")),
         ("Kindness Aligned", ttk.Combobox(frame, textvariable=kindness_var, values=["1", "2", "3", "4", "5"], state="readonly")),
         ("Safety Aligned", ttk.Combobox(frame, textvariable=safety_var, values=["1", "2", "3", "4", "5"], state="readonly")),
     ]
 
-    for i, (label, widget) in enumerate(fields):
-        ttk.Label(frame, text=label).grid(row=i, column=0, sticky="w", pady=6)
-        widget.grid(row=i, column=1, sticky="ew", pady=6)
+    for i, (label, widget) in enumerate(widgets):
+        ttk.Label(frame, text=label).grid(row=i, column=0, sticky="w", pady=8)
+        widget.grid(row=i, column=1, sticky="ew", pady=8)
 
     ttk.Label(root, text="Notes").grid(row=3, column=0, padx=18, pady=(12, 4), sticky="w")
 
-    notes_box = tk.Text(root, height=5, wrap="word")
+    notes_box = tk.Text(root, height=7, wrap="word")
     notes_box.grid(row=4, column=0, padx=18, pady=(0, 12), sticky="nsew")
 
     countdown_var = tk.StringVar(value="Auto-log as missed in 120 seconds")
     ttk.Label(root, textvariable=countdown_var).grid(row=5, column=0, padx=18, pady=(0, 8), sticky="w")
 
     def submit() -> None:
-        activity = activity_var.get()
-        mood = mood_var.get()
-
-        if activity == "Other" and other_activity_var.get().strip():
-            activity = other_activity_var.get().strip()
-
-        if mood == "Other" and other_mood_var.get().strip():
-            mood = other_mood_var.get().strip()
-
-        result["submitted"] = True
-        result["data"] = {
-            "activity": activity,
-            "mood": mood,
+        data = {
+            "activity": activity_var.get().strip() or "Other",
+            "mood": mood_var.get().strip() or "Neutral",
             "energy": int(energy_var.get()),
             "kindness": kindness_var.get(),
             "safety": safety_var.get(),
             "notes": notes_box.get("1.0", "end").strip(),
         }
+        save_last_values(data)
+        result["submitted"] = True
+        result["data"] = data
         root.destroy()
 
     def skip() -> None:
