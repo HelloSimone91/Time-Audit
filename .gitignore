@@ -1,13 +1,19 @@
+# macOS
 .DS_Store
 
+# env files
 .env
+config.env
 *.env
 
+# virtualenv
 .venv/
 venv/
 
+# python
 __pycache__/
 *.pyc
 
+# assets
 *.png
 screenshots/
