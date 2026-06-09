@@ -124,7 +124,9 @@ def get_browser_url(active_app: str) -> str:
 
 def take_screenshot() -> Optional[str]:
     try:
-        path = os.path.join(tempfile.gettempdir(), f"time_audit_{int(time.time())}.png")
+        path = os.path.expanduser(
+    f"~/Desktop/time_audit_{int(time.time())}.png"
+)
         subprocess.run(["screencapture", "-x", path], check=True, timeout=10)
         return path
     except Exception as e:
