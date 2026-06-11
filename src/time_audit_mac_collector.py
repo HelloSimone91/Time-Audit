@@ -21,6 +21,7 @@ TIME_AUDIT_LAT = os.environ.get("TIME_AUDIT_LAT", "30.2672")
 TIME_AUDIT_LON = os.environ.get("TIME_AUDIT_LON", "-97.7431")
 TIME_AUDIT_SESSION_ID = os.environ.get("TIME_AUDIT_SESSION_ID", "time-audit-v2")
 STATE_FILE = os.path.expanduser("~/.time_audit/last_values.json")
+STATS_FILE = os.path.expanduser("~/.time_audit/session_stats.json")
 
 ACTIVITIES = [
     "Work",
@@ -218,6 +219,64 @@ def notify() -> None:
     ])
 
 
+def load_session_stats() -> Dict[str, Any]:
+    defaults = {
+        "session_start": dt.datetime.now().astimezone().isoformat(),
+        "entries": 0,
+        "participated": 0,
+        "missed": 0,
+    }
+
+    try:
+        with open(STATS_FILE, "r") as f:
+            saved = json.load(f)
+        defaults.update(saved)
+    except Exception:
+        save_session_stats(defaults)
+
+    return defaults
+
+
+def save_session_stats(stats: Dict[str, Any]) -> None:
+    try:
+        os.makedirs(os.path.dirname(STATS_FILE), exist_ok=True)
+        with open(STATS_FILE, "w") as f:
+            json.dump(stats, f, indent=2)
+    except Exception as e:
+        print(f"Could not save session stats: {e}", file=sys.stderr)
+
+
+def format_session_stats() -> str:
+    stats = load_session_stats()
+
+    try:
+        started = dt.datetime.fromisoformat(stats["session_start"])
+        elapsed = dt.datetime.now().astimezone() - started
+        days = elapsed.days
+        hours = elapsed.seconds // 3600
+        tracking = f"{days}d {hours}h" if days else f"{hours}h"
+    except Exception:
+        tracking = "0h"
+
+    entries = int(stats.get("entries", 0))
+    participated = int(stats.get("participated", 0))
+    rate = round((participated / entries) * 100) if entries else 0
+
+    return f"Tracking: {tracking}  •  Entries: {entries}  •  Participation: {rate}%"
+
+
+def update_session_stats(participated: bool) -> None:
+    stats = load_session_stats()
+    stats["entries"] = int(stats.get("entries", 0)) + 1
+
+    if participated:
+        stats["participated"] = int(stats.get("participated", 0)) + 1
+    else:
+        stats["missed"] = int(stats.get("missed", 0)) + 1
+
+    save_session_stats(stats)
+
+
 def load_last_values() -> Dict[str, Any]:
     defaults = {
         "activity": "Work",
@@ -299,7 +358,7 @@ def popup_form(active_app: str, active_window: str) -> Optional[Dict[str, Any]]:
 
     root = tk.Tk()
     root.title("Time Audit")
-    root.geometry("500x590")
+    root.geometry("540x760")
     root.attributes("-topmost", True)
 
     
@@ -312,12 +371,18 @@ def popup_form(active_app: str, active_window: str) -> Optional[Dict[str, Any]]:
 
     ttk.Label(
         root,
+        text=format_session_stats(),
+        wraplength=440,
+    ).grid(row=1, column=0, padx=18, pady=(0, 8), sticky="w")
+
+    ttk.Label(
+        root,
         text=f"Active App: {active_app or 'Unknown'}\nActive Window: {active_window or 'Unknown'}",
         wraplength=440,
-    ).grid(row=1, column=0, padx=18, pady=(0, 12), sticky="w")
+    ).grid(row=2, column=0, padx=18, pady=(0, 12), sticky="w")
 
     frame = ttk.Frame(root)
-    frame.grid(row=2, column=0, padx=18, pady=4, sticky="ew")
+    frame.grid(row=3, column=0, padx=18, pady=4, sticky="ew")
     frame.columnconfigure(1, weight=1)
 
     activity_var = tk.StringVar(value=last.get("activity", "Work"))
@@ -502,6 +567,7 @@ def create_notion_page(
     if r.status_code >= 400:
         print(json.dumps(r.json(), indent=2), file=sys.stderr)
     r.raise_for_status()
+    update_session_stats(participated)
 
 
 def main() -> None:
