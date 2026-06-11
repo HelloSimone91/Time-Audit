@@ -302,6 +302,8 @@ def popup_form(active_app: str, active_window: str) -> Optional[Dict[str, Any]]:
     root.geometry("500x590")
     root.attributes("-topmost", True)
 
+    
+
     root.columnconfigure(0, weight=1)
 
     ttk.Label(root, text="Time Audit Check-In", font=("Arial", 18, "bold")).grid(
@@ -332,17 +334,6 @@ def popup_form(active_app: str, active_window: str) -> Optional[Dict[str, Any]]:
     for i, (label, widget) in enumerate(widgets):
         ttk.Label(frame, text=label).grid(row=i, column=0, sticky="w", pady=8)
         widget.grid(row=i, column=1, sticky="ew", pady=8)
-
-    activity_widget = widgets[0][1]
-
-    def focus_popup() -> None:
-        root.lift()
-        root.focus_force()
-        root.attributes("-topmost", True)
-        activity_widget.focus_force()
-
-    root.after(300, focus_popup)
-    root.after(900, focus_popup)
 
     def add_slider(row: int, label: str, variable: tk.StringVar) -> None:
         slider_frame = ttk.Frame(frame)
@@ -379,7 +370,10 @@ def popup_form(active_app: str, active_window: str) -> Optional[Dict[str, Any]]:
     notes_box.grid(row=4, column=0, padx=18, pady=(0, 12), sticky="nsew")
 
     countdown_var = tk.StringVar(value="Auto-log as missed in 120 seconds")
-    ttk.Label(root, textvariable=countdown_var).grid(row=5, column=0, padx=18, pady=(0, 8), sticky="w")
+    ttk.Label(root, textvariable=countdown_var).grid(row=5, column=0, padx=18, pady=(0, 4), sticky="w")
+
+    progress = ttk.Progressbar(root, orient="horizontal", mode="determinate", maximum=120, value=120)
+    progress.grid(row=6, column=0, padx=18, pady=(0, 12), sticky="ew")
 
     def submit() -> None:
         data = {
@@ -400,12 +394,8 @@ def popup_form(active_app: str, active_window: str) -> Optional[Dict[str, Any]]:
         result["data"] = None
         root.destroy()
 
-    root.bind("<Escape>", lambda event: skip())
-    root.bind("<Command-Return>", lambda event: submit())
-    root.bind("<Control-Return>", lambda event: submit())
-
     button_frame = ttk.Frame(root)
-    button_frame.grid(row=6, column=0, padx=18, pady=(0, 18), sticky="e")
+    button_frame.grid(row=7, column=0, padx=18, pady=(0, 18), sticky="e")
 
     ttk.Button(button_frame, text="Skip", command=skip).grid(row=0, column=0, padx=6)
     ttk.Button(button_frame, text="Submit", command=submit).grid(row=0, column=1, padx=6)
@@ -415,6 +405,8 @@ def popup_form(active_app: str, active_window: str) -> Optional[Dict[str, Any]]:
     def tick() -> None:
         remaining = max(0, int(deadline - time.time()))
         countdown_var.set(f"Auto-log as missed in {remaining} seconds")
+        progress["value"] = remaining
+
         if remaining <= 0:
             skip()
         else:
