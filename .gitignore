@@ -17,3 +17,7 @@ __pycache__/
 # assets
 *.png
 screenshots/
+
+# local build products
+dist/
+build/

@@ -8,6 +8,9 @@ Collect objective and subjective data about how I spend my time so I can compare
 
 ## Current Features
 
+- Native macOS popup with Activity, Mood, Energy, Kindness, Safety, and Notes
+- Skip button and automatic missed check-in after two minutes
+- Remembers the last-used selections
 - Automatic Notion logging
 - Automatic timestamp capture
 - Automatic weather capture
@@ -44,13 +47,37 @@ Properties:
 
 ## Setup
 
+Build and test the popup locally (the test does not capture or send data):
+
+```bash
+./script/build_and_run.sh
+```
+
+The Codex project Run action invokes that same command. The native app is built
+at `dist/TimeAuditPopup.app` for the current Mac architecture.
+
+The live collector is `src/time_audit_popup_collector.py`. Live mode captures a
+screenshot and sends the screenshot, active app/window, browser URL, and form
+fields to Notion, so it should only be scheduled after that upload behavior is
+explicitly approved.
+
 Load environment variables:
 
 source ~/.time_audit/config.env
 
 Run collector:
 
-~/.time_audit/.venv/bin/python ~/.time_audit/time_audit_mac_collector.py
+/usr/bin/python3 src/time_audit_popup_collector.py
+
+To stage a local copy without scheduling it:
+
+```bash
+./script/install_popup_collector.sh --prepare
+```
+
+The `--activate` installer mode creates a 30-minute LaunchAgent. Because that
+mode sends screenshots and work context to Notion, do not run it without the
+user's explicit approval.
 
 ## Future Improvements
 
