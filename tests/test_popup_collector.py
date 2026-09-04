@@ -40,6 +40,12 @@ class PopupCollectorTests(unittest.TestCase):
         self.assertTrue(args.dry_run)
         self.assertEqual(args.timeout, 8)
 
+    def test_alignment_options_match_the_live_notion_schema(self):
+        self.assertEqual(collector.alignment_option("kindness", 1), "1 Totally fucking up")
+        self.assertEqual(collector.alignment_option("kindness", 5), "5 Kind to self and surroundings")
+        self.assertEqual(collector.alignment_option("safety", 5), "5 Safe to self and surroundings")
+        self.assertEqual(collector.alignment_option("safety", 3), "3")
+
 
 if __name__ == "__main__":
     unittest.main()

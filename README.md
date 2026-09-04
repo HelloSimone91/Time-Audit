@@ -79,6 +79,13 @@ The `--activate` installer mode creates a 30-minute LaunchAgent. Because that
 mode sends screenshots and work context to Notion, do not run it without the
 user's explicit approval.
 
+Once approved, configure the existing Time Audit data source and activate the
+schedule with a hidden token prompt:
+
+```bash
+./script/configure_and_activate.sh
+```
+
 ## Future Improvements
 
 ### Phase 2

@@ -254,6 +254,15 @@ def multi_select(value):
     return [{"name": value}] if value else []
 
 
+def alignment_option(kind, value):
+    value = int(value)
+    if value == 1:
+        return "1 Totally fucking up"
+    if value == 5:
+        return "5 Kind to self and surroundings" if kind == "kindness" else "5 Safe to self and surroundings"
+    return str(value)
+
+
 def create_notion_entry(entry):
     participated = entry["outcome"] == "submitted"
     properties = {
@@ -277,8 +286,8 @@ def create_notion_entry(entry):
             "Activity": {"multi_select": multi_select(entry["activity"])},
             "Mood": {"multi_select": multi_select(entry["mood"])},
             "Energy": {"number": entry["energy"]},
-            "Kindness Aligned": {"select": {"name": str(entry["kindness"])}},
-            "Safety Aligned": {"select": {"name": str(entry["safety"])}},
+            "Kindness Aligned": {"select": {"name": alignment_option("kindness", entry["kindness"])}},
+            "Safety Aligned": {"select": {"name": alignment_option("safety", entry["safety"])}},
         })
     if entry.get("screenshot_upload"):
         properties["Screenshot"] = {"files": [entry["screenshot_upload"]]}
