@@ -17,7 +17,7 @@ mkdir -p "$APP_MACOS" "$MODULE_CACHE"
 DEVELOPER_DIR="$XCODE_DEVELOPER_DIR" /usr/bin/xcrun swiftc \
   -module-cache-path "$MODULE_CACHE" \
   "$ROOT_DIR/src/time_audit_popup_helper.swift" \
-  -framework AppKit -framework Foundation -o "$APP_BINARY"
+  -framework AppKit -framework Foundation -framework ScreenCaptureKit -o "$APP_BINARY"
 chmod +x "$APP_BINARY"
 
 cat > "$APP_CONTENTS/Info.plist" <<PLIST
@@ -32,8 +32,9 @@ cat > "$APP_CONTENTS/Info.plist" <<PLIST
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleVersion</key><string>1</string>
   <key>CFBundleShortVersionString</key><string>1.0</string>
-  <key>LSMinimumSystemVersion</key><string>13.0</string>
+  <key>LSMinimumSystemVersion</key><string>15.2</string>
   <key>NSPrincipalClass</key><string>NSApplication</string>
+  <key>NSScreenCaptureUsageDescription</key><string>Time Audit captures the current screen for your private Notion time-audit log.</string>
 </dict>
 </plist>
 PLIST

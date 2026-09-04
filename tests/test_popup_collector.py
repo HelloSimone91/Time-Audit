@@ -46,6 +46,14 @@ class PopupCollectorTests(unittest.TestCase):
         self.assertEqual(collector.alignment_option("safety", 5), "5 Safe to self and surroundings")
         self.assertEqual(collector.alignment_option("safety", 3), "3")
 
+    def test_dry_run_context_disables_screenshot_capture(self):
+        with tempfile.TemporaryDirectory() as directory:
+            context = collector.make_context(
+                8, Path(directory) / "state.json", capture_screenshot=False
+            )
+        self.assertFalse(context["captureScreenshot"])
+        self.assertEqual(context["screenshotPath"], "")
+
 
 if __name__ == "__main__":
     unittest.main()

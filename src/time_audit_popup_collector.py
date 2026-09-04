@@ -303,13 +303,20 @@ def append_local(entry, path=LOCAL_LOG):
         handle.write(json.dumps(entry, sort_keys=True) + "\n")
 
 
-def make_context(timeout_seconds, state_file=STATE_FILE):
+def make_context(timeout_seconds, state_file=STATE_FILE, capture_screenshot=False):
     app = active_app_name()
+    interval_epoch = int(time.time() // (INTERVAL_MINUTES * 60))
+    screenshot_path = ""
+    if capture_screenshot:
+        SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
+        screenshot_path = str(SCREENSHOT_DIR / f"{SESSION_ID}-{interval_epoch}.png")
     return {
         "activeApp": app,
         "activeWindow": active_window_title(),
         "browserURL": browser_url(app),
         "timeoutSeconds": timeout_seconds,
+        "captureScreenshot": capture_screenshot,
+        "screenshotPath": screenshot_path,
         **load_last_values(state_file),
     }
 
@@ -320,7 +327,8 @@ def build_entry(context, popup_result, include_capture):
     interval_epoch = int(time.time() // (INTERVAL_MINUTES * 60))
     interval_key = f"{SESSION_ID}-{interval_epoch}"
     weather = weather_snapshot() if include_capture else {"temperature": None, "weather": "Dry run"}
-    screenshot = take_screenshot(interval_key) if include_capture else ""
+    popup_fields = dict(popup_result)
+    screenshot = popup_fields.pop("screenshotPath", None) or ""
     return {
         "name": f"Mac popup audit {local_now.strftime('%Y-%m-%d %H:%M')}",
         "timestamp": now.isoformat(), "local_time": local_now.isoformat(),
@@ -330,7 +338,7 @@ def build_entry(context, popup_result, include_capture):
         "temperature": weather["temperature"], "weather": weather["weather"],
         "active_app": context["activeApp"], "active_window": context["activeWindow"],
         "browser_url": context["browserURL"], "screenshot_path": screenshot,
-        **popup_result,
+        **popup_fields,
     }
 
 
@@ -348,7 +356,7 @@ def main(argv=None):
     args = parse_args(argv)
     if args.timeout < 1:
         raise SystemExit("--timeout must be at least 1 second")
-    context = make_context(args.timeout, args.state_file)
+    context = make_context(args.timeout, args.state_file, capture_screenshot=not args.dry_run)
     popup_result = show_popup(args.helper_app, context, args.state_file)
     entry = build_entry(context, popup_result, include_capture=not args.dry_run)
     if args.dry_run:

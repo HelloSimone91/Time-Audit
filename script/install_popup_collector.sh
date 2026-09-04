@@ -41,9 +41,12 @@ fi
 cat > "$RUNNER" <<RUNNER
 #!/bin/zsh
 set -euo pipefail
-set -a
-source "$INSTALL_DIR/config.env"
-set +a
+while IFS= read -r line; do
+  case "\$line" in
+    ''|'#'*) continue ;;
+    *=*) export "\$line" ;;
+  esac
+done < "$INSTALL_DIR/config.env"
 /usr/bin/python3 "$COLLECTOR_DESTINATION" --helper-app "$APP_DESTINATION"
 RUNNER
 chmod +x "$RUNNER"

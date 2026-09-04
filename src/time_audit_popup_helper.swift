@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import ScreenCaptureKit
 
 struct PopupContext: Decodable {
     let activeApp: String
@@ -11,6 +12,8 @@ struct PopupContext: Decodable {
     let energy: Int
     let kindness: Int
     let safety: Int
+    let captureScreenshot: Bool
+    let screenshotPath: String
 }
 
 struct PopupResult: Encodable {
@@ -21,6 +24,7 @@ struct PopupResult: Encodable {
     let kindness: Int?
     let safety: Int?
     let notes: String?
+    var screenshotPath: String? = nil
 }
 
 private func argument(after flag: String) -> String? {
@@ -47,6 +51,7 @@ private final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelega
     private var timer: Timer?
     private var secondsRemaining: Int
     private var finished = false
+    private var capturedScreenshotPath: String?
 
     private let activities = [
         "Work", "Admin / Logistics", "Learning", "Social", "Entertainment",
@@ -67,10 +72,40 @@ private final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelega
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
+        captureScreenshotIfRequested()
         buildWindow()
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         startCountdown()
+    }
+
+    private func captureScreenshotIfRequested() {
+        guard context.captureScreenshot, !context.screenshotPath.isEmpty else { return }
+        let allowed = CGPreflightScreenCaptureAccess() || CGRequestScreenCaptureAccess()
+        guard allowed else { return }
+        let semaphore = DispatchSemaphore(value: 0)
+        var capturedImage: CGImage?
+        let displayBounds = CGDisplayBounds(CGMainDisplayID())
+        SCScreenshotManager.captureImage(in: displayBounds) { image, error in
+            if let error { fputs("Screen capture failed: \(error)\n", stderr) }
+            capturedImage = image
+            semaphore.signal()
+        }
+        guard semaphore.wait(timeout: .now() + 15) == .success,
+              let image = capturedImage else { return }
+        let destination = URL(fileURLWithPath: context.screenshotPath)
+        do {
+            try FileManager.default.createDirectory(
+                at: destination.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            let representation = NSBitmapImageRep(cgImage: image)
+            guard let png = representation.representation(using: .png, properties: [:]) else { return }
+            try png.write(to: destination, options: .atomic)
+            capturedScreenshotPath = destination.path
+        } catch {
+            fputs("Could not save screenshot: \(error)\n", stderr)
+        }
     }
 
     private func label(_ text: String, size: CGFloat = 13, weight: NSFont.Weight = .regular) -> NSTextField {
@@ -280,7 +315,9 @@ private final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelega
         finished = true
         timer?.invalidate()
         do {
-            let data = try JSONEncoder().encode(result)
+            var completedResult = result
+            completedResult.screenshotPath = capturedScreenshotPath
+            let data = try JSONEncoder().encode(completedResult)
             try data.write(to: outputURL, options: .atomic)
         } catch {
             fputs("Could not write popup result: \(error)\n", stderr)
