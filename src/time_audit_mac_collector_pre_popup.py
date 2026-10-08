@@ -65,6 +65,11 @@ def osascript(script: str) -> str:
     return run(["osascript", "-e", script])
 
 
+def applescript_escape(text: str) -> str:
+    """Escape a string for safe embedding in an AppleScript double-quoted literal."""
+    return text.replace("\\", "\\\\").replace('"', '\\"')
+
+
 def get_active_app() -> str:
     return osascript('tell application "System Events" to get name of first application process whose frontmost is true') or "Unknown"
 
@@ -85,7 +90,7 @@ def get_active_window_title() -> str:
 
 def get_browser_url(active_app: str) -> str:
     if active_app in {"Google Chrome", "Chrome", "Chromium", "Microsoft Edge", "Brave Browser"}:
-        app = active_app
+        app = applescript_escape(active_app)
         script = f'tell application "{app}" to get URL of active tab of front window'
         return osascript(script)
     if active_app == "Safari":
