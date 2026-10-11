@@ -1,0 +1,200 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AA0000000000000000000001 /* TimeAuditMobileApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000001 /* TimeAuditMobileApp.swift */; };
+		AA0000000000000000000002 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000002 /* Models.swift */; };
+		AA0000000000000000000003 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000003 /* KeychainStore.swift */; };
+		AA0000000000000000000004 /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000004 /* NotificationScheduler.swift */; };
+		AA0000000000000000000005 /* PendingScreenshotStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000005 /* PendingScreenshotStore.swift */; };
+		AA0000000000000000000006 /* NotionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000006 /* NotionService.swift */; };
+		AA0000000000000000000007 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000007 /* SettingsView.swift */; };
+		AA0000000000000000000008 /* CheckInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000008 /* CheckInView.swift */; };
+		AA0000000000000000000009 /* TimeAuditIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000009 /* TimeAuditIntents.swift */; };
+		AA0000000000000000000010 /* ModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000010 /* ModelsTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		CC0000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FF0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EE0000000000000000000001;
+			remoteInfo = TimeAuditMobile;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		BB0000000000000000000001 /* TimeAuditMobileApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeAuditMobileApp.swift; sourceTree = "<group>"; };
+		BB0000000000000000000002 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		BB0000000000000000000003 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		BB0000000000000000000004 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScheduler.swift; sourceTree = "<group>"; };
+		BB0000000000000000000005 /* PendingScreenshotStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PendingScreenshotStore.swift; sourceTree = "<group>"; };
+		BB0000000000000000000006 /* NotionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotionService.swift; sourceTree = "<group>"; };
+		BB0000000000000000000007 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		BB0000000000000000000008 /* CheckInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckInView.swift; sourceTree = "<group>"; };
+		BB0000000000000000000009 /* TimeAuditIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeAuditIntents.swift; sourceTree = "<group>"; };
+		BB0000000000000000000010 /* ModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelsTests.swift; sourceTree = "<group>"; };
+		BB0000000000000000000011 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		BB0000000000000000000012 /* TimeAuditMobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TimeAuditMobile.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BB0000000000000000000013 /* TimeAuditMobileTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeAuditMobileTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		DD0000000000000000000001 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		DD0000000000000000000002 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		CC0000000000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				CC0000000000000000000003 /* TimeAuditMobile */,
+				CC0000000000000000000004 /* TimeAuditMobileTests */,
+				CC0000000000000000000005 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CC0000000000000000000003 /* TimeAuditMobile */ = {
+			isa = PBXGroup;
+			children = (
+				BB0000000000000000000001 /* TimeAuditMobileApp.swift */,
+				BB0000000000000000000002 /* Models.swift */,
+				BB0000000000000000000008 /* CheckInView.swift */,
+				BB0000000000000000000007 /* SettingsView.swift */,
+				BB0000000000000000000006 /* NotionService.swift */,
+				BB0000000000000000000003 /* KeychainStore.swift */,
+				BB0000000000000000000004 /* NotificationScheduler.swift */,
+				BB0000000000000000000005 /* PendingScreenshotStore.swift */,
+				BB0000000000000000000009 /* TimeAuditIntents.swift */,
+				BB0000000000000000000011 /* Info.plist */,
+			);
+			path = TimeAuditMobile;
+			sourceTree = "<group>";
+		};
+		CC0000000000000000000004 /* TimeAuditMobileTests */ = {
+			isa = PBXGroup;
+			children = (BB0000000000000000000010 /* ModelsTests.swift */);
+			path = TimeAuditMobileTests;
+			sourceTree = "<group>";
+		};
+		CC0000000000000000000005 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BB0000000000000000000012 /* TimeAuditMobile.app */,
+				BB0000000000000000000013 /* TimeAuditMobileTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		EE0000000000000000000001 /* TimeAuditMobile */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = HH0000000000000000000002 /* Build configuration list for PBXNativeTarget "TimeAuditMobile" */;
+			buildPhases = (
+				DD0000000000000000000003 /* Sources */,
+				DD0000000000000000000001 /* Frameworks */,
+				DD0000000000000000000005 /* Resources */,
+			);
+			buildRules = ();
+			dependencies = ();
+			name = TimeAuditMobile;
+			productName = TimeAuditMobile;
+			productReference = BB0000000000000000000012 /* TimeAuditMobile.app */;
+			productType = "com.apple.product-type.application";
+		};
+		EE0000000000000000000002 /* TimeAuditMobileTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = HH0000000000000000000003 /* Build configuration list for PBXNativeTarget "TimeAuditMobileTests" */;
+			buildPhases = (
+				DD0000000000000000000004 /* Sources */,
+				DD0000000000000000000002 /* Frameworks */,
+				DD0000000000000000000006 /* Resources */,
+			);
+			buildRules = ();
+			dependencies = (II0000000000000000000001 /* PBXTargetDependency */);
+			name = TimeAuditMobileTests;
+			productName = TimeAuditMobileTests;
+			productReference = BB0000000000000000000013 /* TimeAuditMobileTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		FF0000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					EE0000000000000000000001 = {CreatedOnToolsVersion = 26.6;};
+					EE0000000000000000000002 = {CreatedOnToolsVersion = 26.6; TestTargetID = EE0000000000000000000001;};
+				};
+			};
+			buildConfigurationList = HH0000000000000000000001 /* Build configuration list for PBXProject "TimeAuditMobile" */;
+			compatibilityVersion = "Xcode 16.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (en, Base);
+			mainGroup = CC0000000000000000000002;
+			productRefGroup = CC0000000000000000000005 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (EE0000000000000000000001 /* TimeAuditMobile */, EE0000000000000000000002 /* TimeAuditMobileTests */);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		DD0000000000000000000005 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		DD0000000000000000000006 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		DD0000000000000000000003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA0000000000000000000001 /* TimeAuditMobileApp.swift in Sources */,
+				AA0000000000000000000002 /* Models.swift in Sources */,
+				AA0000000000000000000003 /* KeychainStore.swift in Sources */,
+				AA0000000000000000000004 /* NotificationScheduler.swift in Sources */,
+				AA0000000000000000000005 /* PendingScreenshotStore.swift in Sources */,
+				AA0000000000000000000006 /* NotionService.swift in Sources */,
+				AA0000000000000000000007 /* SettingsView.swift in Sources */,
+				AA0000000000000000000008 /* CheckInView.swift in Sources */,
+				AA0000000000000000000009 /* TimeAuditIntents.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DD0000000000000000000004 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (AA0000000000000000000010 /* ModelsTests.swift in Sources */); runOnlyForDeploymentPostprocessing = 0; };
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		II0000000000000000000001 /* PBXTargetDependency */ = {isa = PBXTargetDependency; target = EE0000000000000000000001 /* TimeAuditMobile */; targetProxy = CC0000000000000000000001 /* PBXContainerItemProxy */; };
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		GG0000000000000000000001 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {CLANG_ENABLE_MODULES = YES; DEBUG_INFORMATION_FORMAT = dwarf; ENABLE_TESTABILITY = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG; SWIFT_OPTIMIZATION_LEVEL = "-Onone";}; name = Debug; };
+		GG0000000000000000000002 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {CLANG_ENABLE_MODULES = YES; DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym"; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SWIFT_COMPILATION_MODE = wholemodule;}; name = Release; };
+		GG0000000000000000000003 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; ENABLE_PREVIEWS = YES; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = TimeAuditMobile/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 17.0; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks"); MARKETING_VERSION = 1.0; PRODUCT_BUNDLE_IDENTIFIER = com.simone.timeaudit.mobile; PRODUCT_NAME = "$(TARGET_NAME)"; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_EMIT_LOC_STRINGS = YES; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 1;}; name = Debug; };
+		GG0000000000000000000004 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = TimeAuditMobile/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 17.0; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks"); MARKETING_VERSION = 1.0; PRODUCT_BUNDLE_IDENTIFIER = com.simone.timeaudit.mobile; PRODUCT_NAME = "$(TARGET_NAME)"; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SWIFT_EMIT_LOC_STRINGS = YES; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 1;}; name = Release; };
+		GG0000000000000000000005 /* Debug */ = {isa = XCBuildConfiguration; buildSettings = {BUNDLE_LOADER = "$(TEST_HOST)"; CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@loader_path/Frameworks"); PRODUCT_BUNDLE_IDENTIFIER = com.simone.timeaudit.mobile.tests; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 1; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TimeAuditMobile.app/TimeAuditMobile";}; name = Debug; };
+		GG0000000000000000000006 /* Release */ = {isa = XCBuildConfiguration; buildSettings = {BUNDLE_LOADER = "$(TEST_HOST)"; CODE_SIGN_STYLE = Automatic; GENERATE_INFOPLIST_FILE = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@loader_path/Frameworks"); PRODUCT_BUNDLE_IDENTIFIER = com.simone.timeaudit.mobile.tests; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 1; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TimeAuditMobile.app/TimeAuditMobile";}; name = Release; };
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		HH0000000000000000000001 /* Build configuration list for PBXProject "TimeAuditMobile" */ = {isa = XCConfigurationList; buildConfigurations = (GG0000000000000000000001 /* Debug */, GG0000000000000000000002 /* Release */); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		HH0000000000000000000002 /* Build configuration list for PBXNativeTarget "TimeAuditMobile" */ = {isa = XCConfigurationList; buildConfigurations = (GG0000000000000000000003 /* Debug */, GG0000000000000000000004 /* Release */); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		HH0000000000000000000003 /* Build configuration list for PBXNativeTarget "TimeAuditMobileTests" */ = {isa = XCConfigurationList; buildConfigurations = (GG0000000000000000000005 /* Debug */, GG0000000000000000000006 /* Release */); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+/* End XCConfigurationList section */
+	};
+	rootObject = FF0000000000000000000001 /* Project object */;
+}

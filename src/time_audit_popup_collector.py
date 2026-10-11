@@ -38,6 +38,7 @@ LAT = os.getenv("TIME_AUDIT_LAT", "30.2672")
 LON = os.getenv("TIME_AUDIT_LON", "-97.7431")
 SESSION_ID = os.getenv("TIME_AUDIT_SESSION_ID", "time-audit-popup-v1")
 INTERVAL_MINUTES = int(os.getenv("TIME_AUDIT_INTERVAL_MINUTES", "30"))
+SCREENSHOT_RETENTION_DAYS = int(os.getenv("TIME_AUDIT_SCREENSHOT_RETENTION_DAYS", "14"))
 
 WEATHER_CODES = {
     0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
@@ -50,6 +51,17 @@ WEATHER_CODES = {
     82: "Violent rain showers", 85: "Slight snow showers",
     86: "Heavy snow showers", 95: "Thunderstorm",
     96: "Thunderstorm with slight hail", 99: "Thunderstorm with heavy hail",
+}
+
+STANDARD_ACTIVITIES = {
+    "Work", "Admin / Logistics", "Learning", "Social", "Entertainment",
+    "Health", "Eating", "Travel / Errands", "Household", "Dogs",
+    "Aunt Simone Duties", "Scrolling", "Rest", "Other",
+}
+STANDARD_MOODS = {
+    "Anxious", "Calm", "Connected", "Content", "Curious", "Energized",
+    "Excited", "Focused", "Frustrated", "Grateful", "Happy", "Hopeful",
+    "Neutral", "Other", "Proud", "Sad", "Tired",
 }
 
 
@@ -95,7 +107,8 @@ def browser_url(active_app):
 
 def load_last_values(path=STATE_FILE):
     defaults = {
-        "activity": "Work", "mood": "Neutral", "energy": 3,
+        "activity": "Work", "mood": ["Neutral"], "activityOptions": [],
+        "moodOptions": [], "energy": 3,
         "kindness": 3, "safety": 3,
     }
     try:
@@ -103,14 +116,33 @@ def load_last_values(path=STATE_FILE):
         defaults.update({key: saved[key] for key in defaults if key in saved})
     except (OSError, ValueError, TypeError):
         pass
+    if isinstance(defaults["mood"], str):
+        defaults["mood"] = [defaults["mood"]] if defaults["mood"] else []
+    if not isinstance(defaults["activityOptions"], list):
+        defaults["activityOptions"] = []
+    if not isinstance(defaults["moodOptions"], list):
+        defaults["moodOptions"] = []
     return defaults
 
 
 def save_last_values(result, path=STATE_FILE):
+    previous = load_last_values(path)
+    custom_activities = previous.get("activityOptions", [])
+    custom_moods = previous.get("moodOptions", [])
+    activity = result["activity"].strip()
+    if activity and activity not in STANDARD_ACTIVITIES and activity not in custom_activities:
+        custom_activities.append(activity)
+    known_moods = {mood.casefold() for mood in STANDARD_MOODS | set(custom_moods)}
+    for mood in result["mood"]:
+        mood = mood.strip()
+        if mood and mood.casefold() not in known_moods:
+            custom_moods.append(mood)
+            known_moods.add(mood.casefold())
     values = {
-        "activity": result["activity"], "mood": result["mood"],
-        "energy": result["energy"], "kindness": result["kindness"],
-        "safety": result["safety"],
+        "activity": activity, "mood": result["mood"],
+        "activityOptions": custom_activities,
+        "moodOptions": custom_moods,
+        "energy": result["energy"],
     }
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     Path(path).write_text(json.dumps(values, indent=2) + "\n", encoding="utf-8")
@@ -251,7 +283,9 @@ def upload_file_to_notion(path):
 
 
 def multi_select(value):
-    return [{"name": value}] if value else []
+    if isinstance(value, str):
+        value = [value] if value else []
+    return [{"name": item} for item in value if item]
 
 
 def alignment_option(kind, value):
@@ -286,8 +320,6 @@ def create_notion_entry(entry):
             "Activity": {"multi_select": multi_select(entry["activity"])},
             "Mood": {"multi_select": multi_select(entry["mood"])},
             "Energy": {"number": entry["energy"]},
-            "Kindness Aligned": {"select": {"name": alignment_option("kindness", entry["kindness"])}},
-            "Safety Aligned": {"select": {"name": alignment_option("safety", entry["safety"])}},
         })
     if entry.get("screenshot_upload"):
         properties["Screenshot"] = {"files": [entry["screenshot_upload"]]}
@@ -301,6 +333,22 @@ def append_local(entry, path=LOCAL_LOG):
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(entry, sort_keys=True) + "\n")
+
+
+def prune_old_screenshots(directory=SCREENSHOT_DIR, retention_days=SCREENSHOT_RETENTION_DAYS, now=None):
+    directory = Path(directory)
+    if retention_days < 1 or not directory.exists():
+        return 0
+    cutoff = (time.time() if now is None else now) - retention_days * 24 * 60 * 60
+    removed = 0
+    for path in directory.glob("*.png"):
+        try:
+            if path.stat().st_mtime < cutoff:
+                path.unlink()
+                removed += 1
+        except FileNotFoundError:
+            pass
+    return removed
 
 
 def make_context(timeout_seconds, state_file=STATE_FILE, capture_screenshot=False):
@@ -356,6 +404,8 @@ def main(argv=None):
     args = parse_args(argv)
     if args.timeout < 1:
         raise SystemExit("--timeout must be at least 1 second")
+    if not args.dry_run:
+        prune_old_screenshots()
     context = make_context(args.timeout, args.state_file, capture_screenshot=not args.dry_run)
     popup_result = show_popup(args.helper_app, context, args.state_file)
     entry = build_entry(context, popup_result, include_capture=not args.dry_run)

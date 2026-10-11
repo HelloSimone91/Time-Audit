@@ -8,7 +8,9 @@ struct PopupContext: Decodable {
     let browserURL: String
     let timeoutSeconds: Int
     let activity: String
-    let mood: String
+    let activityOptions: [String]?
+    let mood: [String]
+    let moodOptions: [String]?
     let energy: Int
     let kindness: Int
     let safety: Int
@@ -19,7 +21,7 @@ struct PopupContext: Decodable {
 struct PopupResult: Encodable {
     let outcome: String
     let activity: String?
-    let mood: String?
+    let mood: [String]?
     let energy: Int?
     let kindness: Int?
     let safety: Int?
@@ -38,13 +40,11 @@ private final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelega
     private let outputURL: URL
     private var window: NSWindow!
     private var activityPopup: NSPopUpButton!
-    private var moodPopup: NSPopUpButton!
+    private var activityWriteIn: NSTextField!
+    private var moodButtons: [NSButton] = []
+    private var moodWriteIn: NSTextField!
     private var energySlider: NSSlider!
-    private var kindnessSlider: NSSlider!
-    private var safetySlider: NSSlider!
     private var energyValue: NSTextField!
-    private var kindnessValue: NSTextField!
-    private var safetyValue: NSTextField!
     private var notesView: NSTextView!
     private var countdownLabel: NSTextField!
     private var progress: NSProgressIndicator!
@@ -53,14 +53,15 @@ private final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelega
     private var finished = false
     private var capturedScreenshotPath: String?
 
-    private let activities = [
+    private let standardActivities = [
         "Work", "Admin / Logistics", "Learning", "Social", "Entertainment",
         "Health", "Eating", "Travel / Errands", "Household", "Dogs",
-        "Scrolling", "Rest", "Other"
+        "Aunt Simone Duties", "Scrolling", "Rest", "Other"
     ]
-    private let moods = [
-        "Energized", "Focused", "Content", "Neutral", "Tired", "Stressed",
-        "Anxious", "Frustrated", "Other"
+    private let standardMoods = [
+        "Anxious", "Calm", "Connected", "Content", "Curious", "Energized",
+        "Excited", "Focused", "Frustrated", "Grateful", "Happy", "Hopeful",
+        "Neutral", "Other", "Proud", "Sad", "Tired"
     ]
 
     init(context: PopupContext, outputURL: URL) {
@@ -81,7 +82,10 @@ private final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelega
 
     private func captureScreenshotIfRequested() {
         guard context.captureScreenshot, !context.screenshotPath.isEmpty else { return }
-        let allowed = CGPreflightScreenCaptureAccess() || CGRequestScreenCaptureAccess()
+        let allowed = CGPreflightScreenCaptureAccess()
+        if !allowed {
+            fputs("Screen capture permission is unavailable; skipping the screenshot without prompting.\n", stderr)
+        }
         guard allowed else { return }
         let semaphore = DispatchSemaphore(value: 0)
         var capturedImage: CGImage?
@@ -119,7 +123,7 @@ private final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelega
 
     private func buildWindow() {
         window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 520, height: 650),
+            contentRect: NSRect(x: 0, y: 0, width: 520, height: 750),
             styleMask: [.titled, .closable, .miniaturizable],
             backing: .buffered,
             defer: false
@@ -156,30 +160,64 @@ private final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelega
         contextLabel.widthAnchor.constraint(equalToConstant: 472).isActive = true
         root.addArrangedSubview(contextLabel)
 
+        let customActivities = (context.activityOptions ?? []).filter {
+            !standardActivities.contains($0) && !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+        var activities = standardActivities + customActivities
+        if !context.activity.isEmpty && !activities.contains(context.activity) { activities.append(context.activity) }
+        activities.append("Write in…")
         activityPopup = NSPopUpButton()
         activityPopup.addItems(withTitles: activities)
         activityPopup.selectItem(withTitle: activities.contains(context.activity) ? context.activity : "Work")
-        root.addArrangedSubview(row(title: "Activity", control: activityPopup))
+        activityPopup.target = self
+        activityPopup.action = #selector(activityChanged)
+        activityWriteIn = NSTextField(string: "")
+        activityWriteIn.placeholderString = "Name this activity"
+        activityWriteIn.isHidden = true
+        let activityControls = NSStackView(views: [activityPopup, activityWriteIn])
+        activityControls.orientation = .vertical
+        activityControls.alignment = .leading
+        activityControls.spacing = 6
+        activityPopup.widthAnchor.constraint(equalToConstant: 330).isActive = true
+        activityWriteIn.widthAnchor.constraint(equalToConstant: 330).isActive = true
+        root.addArrangedSubview(row(title: "Activity", control: activityControls))
 
-        moodPopup = NSPopUpButton()
-        moodPopup.addItems(withTitles: moods)
-        moodPopup.selectItem(withTitle: moods.contains(context.mood) ? context.mood : "Neutral")
-        root.addArrangedSubview(row(title: "Mood", control: moodPopup))
+        let customMoods = (context.moodOptions ?? []).filter { customMood in
+            !standardMoods.contains(where: { $0.caseInsensitiveCompare(customMood) == .orderedSame }) &&
+                !customMood.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+        var moods = standardMoods + customMoods
+        for selectedMood in context.mood where !moods.contains(where: {
+            $0.caseInsensitiveCompare(selectedMood) == .orderedSame
+        }) {
+            moods.append(selectedMood)
+        }
+
+        let moodGrid = NSGridView()
+        moodGrid.rowSpacing = 5
+        moodGrid.columnSpacing = 12
+        for rowStart in stride(from: 0, to: moods.count, by: 3) {
+            let buttons = (0..<3).map { column -> NSView in
+                let index = rowStart + column
+                guard index < moods.count else { return NSView() }
+                let mood = moods[index]
+                let button = NSButton(checkboxWithTitle: mood, target: nil, action: nil)
+                button.state = context.mood.contains(mood) ? .on : .off
+                moodButtons.append(button)
+                return button
+            }
+            moodGrid.addRow(with: buttons)
+        }
+        root.addArrangedSubview(row(title: "Feelings", control: moodGrid, alignment: .top))
+
+        moodWriteIn = NSTextField(string: "")
+        moodWriteIn.placeholderString = "Add other feelings, separated by commas"
+        root.addArrangedSubview(row(title: "Other feelings", control: moodWriteIn))
 
         energySlider = makeSlider(value: context.energy)
         energySlider.identifier = NSUserInterfaceItemIdentifier("energy")
         energyValue = valueLabel(context.energy)
         root.addArrangedSubview(sliderRow(title: "Energy", slider: energySlider, value: energyValue))
-
-        kindnessSlider = makeSlider(value: context.kindness)
-        kindnessSlider.identifier = NSUserInterfaceItemIdentifier("kindness")
-        kindnessValue = valueLabel(context.kindness)
-        root.addArrangedSubview(sliderRow(title: "Kindness aligned", slider: kindnessSlider, value: kindnessValue))
-
-        safetySlider = makeSlider(value: context.safety)
-        safetySlider.identifier = NSUserInterfaceItemIdentifier("safety")
-        safetyValue = valueLabel(context.safety)
-        root.addArrangedSubview(sliderRow(title: "Safety aligned", slider: safetySlider, value: safetyValue))
 
         root.addArrangedSubview(label("Notes", size: 13, weight: .medium))
         let scroll = NSScrollView()
@@ -223,10 +261,10 @@ private final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelega
         root.addArrangedSubview(buttons)
     }
 
-    private func row(title: String, control: NSView) -> NSStackView {
+    private func row(title: String, control: NSView, alignment: NSLayoutConstraint.Attribute = .centerY) -> NSStackView {
         let row = NSStackView()
         row.orientation = .horizontal
-        row.alignment = .centerY
+        row.alignment = alignment
         row.spacing = 12
         let titleLabel = label(title, size: 13, weight: .medium)
         titleLabel.widthAnchor.constraint(equalToConstant: 126).isActive = true
@@ -269,20 +307,36 @@ private final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelega
         let value = String(sender.integerValue)
         switch sender.identifier?.rawValue {
         case "energy": energyValue.stringValue = value
-        case "kindness": kindnessValue.stringValue = value
-        case "safety": safetyValue.stringValue = value
         default: break
         }
     }
 
+    @objc private func activityChanged() {
+        let isWriteIn = activityPopup.titleOfSelectedItem == "Write in…"
+        activityWriteIn.isHidden = !isWriteIn
+        if isWriteIn {
+            activityWriteIn.becomeFirstResponder()
+        }
+    }
+
     @objc private func submitPressed() {
+        let selectedActivity = activityPopup.titleOfSelectedItem == "Write in…"
+            ? activityWriteIn.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            : (activityPopup.titleOfSelectedItem ?? "Other")
+        var selectedMoods = moodButtons.filter { $0.state == .on }.map(\.title)
+        for mood in moodWriteIn.stringValue.split(separator: ",") {
+            let trimmed = mood.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty && !selectedMoods.contains(where: { $0.caseInsensitiveCompare(trimmed) == .orderedSame }) {
+                selectedMoods.append(trimmed)
+            }
+        }
         finish(PopupResult(
             outcome: "submitted",
-            activity: activityPopup.titleOfSelectedItem ?? "Other",
-            mood: moodPopup.titleOfSelectedItem ?? "Neutral",
+            activity: selectedActivity.isEmpty ? "Other" : selectedActivity,
+            mood: selectedMoods,
             energy: energySlider.integerValue,
-            kindness: kindnessSlider.integerValue,
-            safety: safetySlider.integerValue,
+            kindness: nil,
+            safety: nil,
             notes: notesView.string.trimmingCharacters(in: .whitespacesAndNewlines)
         ))
     }
